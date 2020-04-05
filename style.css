@@ -1,0 +1,19 @@
+body {
+    background-color: lightgray;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.links {
+    position: absolute;
+    left: 1em;
+    top: 1em;
+}
+.links a {
+    text-decoration: none;
+    font-family: sans-serif;
+    color:darkgrey;
+}

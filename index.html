@@ -1,0 +1,32 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Jena Corona Fallzahlen</title>
+  <meta name="description" content="Fallzahlen Corona Jena">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <script src="d3.v5.min.js"></script>
+  <script type="module" src="script.js"></script>
+  <script type="module">
+    import diagram, { bg } from './diagram.js'
+    document.body.appendChild(diagram)
+    diagram.style.backgroundImage = `url(${bg})`
+  </script>
+  <link href="style.css" rel="stylesheet">
+  <style>
+    svg {
+        background-color: white;
+        background-position: 44px 18px;
+        background-repeat: no-repeat;
+        background-size: 515px 371px;
+    }
+  </style>
+</head>
+<body>
+    <div class="links">
+      <a href="index2.html" >alt</a> |
+      <a href="data:image/svg+xml,' + encodeURIComponent(diagram.outerHTML)" download="Jena.png">⭳ download</a>
+    </div>
+</body>
+</html>

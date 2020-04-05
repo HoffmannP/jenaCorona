@@ -19,8 +19,8 @@ const colors = [
   `rgba(255,   0,   0, ${alpha})`,
   `rgba(255, 165,   0, ${alpha})`,
   `rgba(  0,   0, 255, ${alpha})`,
-  `rgba(  0, 128,   0, ${alpha})`,
-  `rgba(0,     0,   0, ${alpha})`
+  `rgba(0,     0,   0, ${alpha})`,
+  `rgba(  0, 128,   0, ${alpha})`
 ]
 
 const toDate = u => d3.timeFormat('%e.%m.')(new Date(u))
@@ -47,7 +47,7 @@ d3.csv(url, row => ({
 
   // Transpose the data into layers
   const stack = d3.stack()
-    .keys(['schwerer_verlauf', 'stationaer', 'erkrankte', 'genesene', 'tote'])
+    .keys(['schwerer_verlauf', 'stationaer', 'erkrankte', 'tote', 'genesene'])
     .order(d3.stackOrderReverse)
     .offset(d3.stackOffsetDiverging)
   const datasets = stack(data)

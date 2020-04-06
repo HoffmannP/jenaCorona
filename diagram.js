@@ -13,8 +13,6 @@ const margin = {
 const width = overallWidth - margin.left - margin.right
 const height = overallHeight - margin.top - margin.bottom
 
-console.log(width, height)
-
 const innerMargin = 15
 const squareWidth = 5
 

@@ -11,16 +11,14 @@ const margin = {
 const width = overallWidth - margin.left - margin.right
 const height = overallHeight - margin.top - margin.bottom
 
-console.log(width, height)
-
 export const bg = 'images/bg5.jpg'
 const alpha = 0.66
 const colors = [
-  `rgba(255,   0,   0, ${alpha})`,
-  `rgba(255, 165,   0, ${alpha})`,
-  `rgba(  0,   0, 255, ${alpha})`,
+  `rgba(  0, 128,   0, ${alpha})`,
   `rgba(0,     0,   0, ${alpha})`,
-  `rgba(  0, 128,   0, ${alpha})`
+  `rgba(  0,   0, 255, ${alpha})`,
+  `rgba(255, 165,   0, ${alpha})`,
+  `rgba(255,   0,   0, ${alpha})`
 ]
 
 const toDate = u => d3.timeFormat('%e.%m.')(new Date(u))
@@ -33,11 +31,11 @@ export default svg.node()
 
 d3.csv(url, row => ({
   date: 1000 * row.zeit,
-  tote: -row.tote,
+  tote: -row.tote || -1e-9,
   schwerer_verlauf: (+row.schwerer_verlauf) || 1e-9,
   stationaer: (+row.stationaer - +row.schwerer_verlauf) || 1e-9,
   genesene: -row.genesene,
-  erkrankte: +row.erkrankte - +row.genesene - +row.stationaer - +row.tote
+  infizierte: +row.erkrankte - +row.genesene - +row.stationaer - +row.tote
 })).then(data => {
   svg
     .attr('width', overallWidth)
@@ -46,14 +44,14 @@ d3.csv(url, row => ({
     .attr('xmlns', 'http://www.w3.org/2000/svg')
 
   // Transpose the data into layers
+  const keys = ['genesene', 'tote', 'infizierte', 'stationaer', 'schwerer_verlauf']
   const stack = d3.stack()
-    .keys(['schwerer_verlauf', 'stationaer', 'erkrankte', 'tote', 'genesene'])
-    .order(d3.stackOrderReverse)
+    .keys(keys)
     .offset(d3.stackOffsetDiverging)
   const datasets = stack(data)
 
   const x = d3.scaleLinear().domain([d3.min(data, d => d.date), d3.max(data, d => d.date)]).range([0, width])
-  const y1 = d3.scaleLinear().domain([d3.min(data, d => d.genesene), d3.max(data, d => d.erkrankte)]).nice().range([height, 0])
+  const y1 = d3.scaleLinear().domain([d3.min(data, d => d.genesene), d3.max(data, d => d.infizierte)]).nice().range([height, 0])
 
   const area = d3.area()
     .x((d, i) => x(d.data.date))
@@ -94,9 +92,11 @@ d3.csv(url, row => ({
     .attr('x', width / 2)
     .attr('y', -margin.top / 2)
 
-  const names = ['Schwerer Verlauf', 'Stationär', 'Infiziert', 'Gesund', 'Tote']
+  const names = ['Genesen', 'Tote', 'Infiziert', 'Stationär', 'Schwerer Verlauf']
   const lw = width / names.length
-  const ofst = 6
+  const ofst = 8
+  const offsetPos = [0, lw - ofst, 2 * lw - 2 * ofst, 3 * lw - 3 * ofst, 4 * lw - 4 * ofst]
+  const offsetWidth = [lw - ofst, lw - ofst, lw - ofst, lw - ofst, lw + 4 * ofst]
 
   svg.append('g')
     .attr('class', 'legend')
@@ -105,19 +105,18 @@ d3.csv(url, row => ({
     .enter().append('g')
     .each((d, i, g) => d3.select(g[i])
       .call(g => g.append('rect')
-        .attr('x', [0, lw + 4 * ofst, 2 * lw + 3 * ofst, 3 * lw + 2 * ofst, 4 * lw + ofst][i])
+        .attr('x', offsetPos[i])
         .attr('y', height + margin.bottom / 2)
-        .attr('width', [lw + 4 * ofst, lw - ofst, lw - ofst, lw - ofst, lw - ofst][i])
+        .attr('width', offsetWidth[i])
         .attr('height', 21)
         .style('fill', colors[i]))
       .call(g => g.append('text')
-        .attr('x', 10 + [0, lw + 4 * ofst, 2 * lw + 3 * ofst, 3 * lw + 2 * ofst, 4 * lw + ofst][i])
+        .attr('x', 5 + offsetPos[i])
         .attr('y', height + margin.bottom / 2 + 5)
-        .text(names[i])
+        .text(`${names[i]} (${Math.abs(data[data.length - 1][keys[i]])})`)
         .style('dominant-baseline', 'hanging')
         .style('font-size', 13)
-        .style('fill', ['black', 'black', 'white', 'white', 'white'][i]))
-    )
+        .style('fill', ['white', 'white', 'white', 'black', 'black'][i])))
 
   svg.append('text')
     .text('🄯2019 hoffis-eck.de/jenaCorona')

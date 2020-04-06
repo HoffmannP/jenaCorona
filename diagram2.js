@@ -135,8 +135,12 @@ d3.csv(url, row => ({
   /*
     const targetImg = document.createElement('img')
     document.body.appendChild(targetImg)
-    .then(dataUrl => (targetImg.src = dataUrl))
-    */
-  shared.toDataURL(svg.node(), { x: margin.left, y: margin.top, w: width, h: height })
-    .then(dataUrl => (document.querySelector('a[download]').href = dataUrl))
+    .then(dataUrl => (targetImg.src = canvas.toDataUrl()))
+  */
+
+  shared.diagramToFile(svg, { x: margin.left, y: margin.top, w: width, h: height })
+    .then(canvas => {
+      shared.addDownloadButton('Jena-alt', canvas)
+      shared.addShareButton(canvas)
+    })
 })

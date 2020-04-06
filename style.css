@@ -15,9 +15,35 @@ body {
 .links a {
     text-decoration: none;
     font-family: sans-serif;
-    color:darkgrey;
+    color:#151513;
 }
 svg {
     background-color: white;
     background-repeat: no-repeat;
 }
+
+.github-corner svg {
+    background-color: transparent;
+  }
+  .github-corner:hover .octo-arm{
+    animation:octocat-wave 560ms ease-in-out
+  }
+  @keyframes octocat-wave{
+    0%,100% {
+      transform:rotate(0)
+    }
+    20%,60% {
+      transform:rotate(-25deg)
+    }
+    40%,80%{
+      transform:rotate(10deg)
+    }
+  }
+  @media (max-width:500px) {
+    .github-corner:hover .octo-arm {
+      animation:none
+    }
+    .github-corner .octo-arm {
+      animation:octocat-wave 560ms ease-in-out
+    }
+  }

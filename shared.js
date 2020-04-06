@@ -3,11 +3,11 @@ export const overallHeight = 500
 
 export const bg = 'images/bg6.jpg'
 
-function loadBackground (bg) {
+function loadBackground (backgroundImageUrl) {
   return new Promise(function (resolve) {
     const bgImg = document.createElement('img')
     bgImg.addEventListener('load', resolve)
-    bgImg.src = bg
+    bgImg.src = backgroundImageUrl
   })
 }
 

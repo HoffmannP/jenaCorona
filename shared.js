@@ -49,9 +49,9 @@ export function addDownloadButton (name, canvas) {
   document.querySelector('.links').insertAdjacentElement('beforeend', a)
 }
 
-export function addShareButton (canvas) {
+export function addShareButton (name, canvas) {
   canvas.toBlob(function (f) {
-    const imageFile = [ f ]
+    const imageFile = [ new window.File([f], name) ]
     if (navigator.canShare && navigator.canShare({ files: imageFile })) {
       const a = document.createElement('a')
       a.innerText = 'share'

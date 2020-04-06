@@ -207,6 +207,6 @@ d3.csv(url, cleanData).then(data => {
   shared.diagramToFile(svg, { x: margin.left, y: margin.top, w: width, h: height })
     .then(canvas => {
       shared.addDownloadButton('Jena', canvas)
-      shared.addShareButton(canvas)
+      shared.addShareButton('Jena', canvas)
     })
 })

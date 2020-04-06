@@ -141,6 +141,6 @@ d3.csv(url, row => ({
   shared.diagramToFile(svg, { x: margin.left, y: margin.top, w: width, h: height })
     .then(canvas => {
       shared.addDownloadButton('Jena-alt', canvas)
-      shared.addShareButton(canvas)
+      shared.addShareButton('Jena-alt', canvas)
     })
 })

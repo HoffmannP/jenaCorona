@@ -63,8 +63,6 @@ export function addShareButton (canvas) {
       })
       document.querySelector('.links').insertAdjacentText('beforeend', ' | ')
       document.querySelector('.links').insertAdjacentElement('beforeend', a)
-    } else {
-      window.alert(navigator.canShare);
-      window.alert(navigator.canShare({ files: imageFile }));
+    }
   })
 }

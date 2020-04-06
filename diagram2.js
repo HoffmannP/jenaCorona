@@ -13,12 +13,13 @@ const height = overallHeight - margin.top - margin.bottom
 
 export const bg = 'images/bg5.jpg'
 const alpha = 0.66
-const colors = [
-  `rgba(  0, 128,   0, ${alpha})`,
-  `rgba(0,     0,   0, ${alpha})`,
-  `rgba(  0,   0, 255, ${alpha})`,
-  `rgba(255, 165,   0, ${alpha})`,
-  `rgba(255,   0,   0, ${alpha})`
+
+const categories = [
+  { name: 'Genesen', key: 'genesene', color: `rgba(  0, 128,   0, ${alpha})` },
+  { name: 'Tote', key: 'tote', color: `rgba(0,     0,   0, ${alpha})` },
+  { name: 'Infiziert', key: 'infizierte', color: `rgba(  0,   0, 255, ${alpha})` },
+  { name: 'Stationär', key: 'stationaer', color: `rgba(255, 165,   0, ${alpha})` },
+  { name: 'Schwerer Verlauf', key: 'schwerer_verlauf', color: `rgba(255,   0,   0, ${alpha})` }
 ]
 
 const toDate = u => d3.timeFormat('%e.%m.')(new Date(u))
@@ -44,9 +45,9 @@ d3.csv(url, row => ({
     .attr('xmlns', 'http://www.w3.org/2000/svg')
 
   // Transpose the data into layers
-  const keys = ['genesene', 'tote', 'infizierte', 'stationaer', 'schwerer_verlauf']
   const stack = d3.stack()
-    .keys(keys)
+    .keys(categories.map(c => c.key))
+    .order(d3.stackOrderstackOrderNone)
     .offset(d3.stackOffsetDiverging)
   const datasets = stack(data)
 
@@ -71,7 +72,7 @@ d3.csv(url, row => ({
     .selectAll('areas')
     .data(datasets).enter()
     .append('path')
-    .attr('fill', (d, i) => colors[i])
+    .attr('fill', (d, i) => categories[i].color)
     .attr('d', d => area(d))
 
   svg.append('g').attr('class', 'y axis')
@@ -92,8 +93,7 @@ d3.csv(url, row => ({
     .attr('x', width / 2)
     .attr('y', -margin.top / 2)
 
-  const names = ['Genesen', 'Tote', 'Infiziert', 'Stationär', 'Schwerer Verlauf']
-  const lw = width / names.length
+  const lw = width / categories.length
   const ofst = 8
   const offsetPos = [0, lw - ofst, 2 * lw - 2 * ofst, 3 * lw - 3 * ofst, 4 * lw - 4 * ofst]
   const offsetWidth = [lw - ofst, lw - ofst, lw - ofst, lw - ofst, lw + 4 * ofst]
@@ -101,7 +101,7 @@ d3.csv(url, row => ({
   svg.append('g')
     .attr('class', 'legend')
     .selectAll('entries')
-    .data(names)
+    .data([ categories[1], categories[0], ...categories.slice(2) ])
     .enter().append('g')
     .each((d, i, g) => d3.select(g[i])
       .call(g => g.append('rect')
@@ -109,11 +109,11 @@ d3.csv(url, row => ({
         .attr('y', height + margin.bottom / 2)
         .attr('width', offsetWidth[i])
         .attr('height', 21)
-        .style('fill', colors[i]))
+        .style('fill', d.color))
       .call(g => g.append('text')
         .attr('x', 5 + offsetPos[i])
         .attr('y', height + margin.bottom / 2 + 5)
-        .text(`${names[i]} (${Math.abs(data[data.length - 1][keys[i]])})`)
+        .text(`${d.name} (${Math.abs(data[data.length - 1][d.key])})`)
         .style('dominant-baseline', 'hanging')
         .style('font-size', 13)
         .style('fill', ['white', 'white', 'white', 'black', 'black'][i])))

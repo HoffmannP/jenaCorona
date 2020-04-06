@@ -35,9 +35,9 @@ export function diagramToFile (diagram, bgPosition) {
 
   return loadBackground(bg)
     .then(drawOnLoad(ctx, bgPosition))
-    .then(_ => loadDiagram(diagram.node()))
+    .then(() => loadDiagram(diagram.node()))
     .then(drawOnLoad(ctx, { x: 0, y: 0, w: overallWidth, h: overallHeight }))
-    .then(_ => canvas)
+    .then(() => canvas)
 }
 
 export function addDownloadButton (name, canvas) {
@@ -56,7 +56,7 @@ export function addShareButton (name, canvas) {
       const a = document.createElement('a')
       a.innerText = 'share'
       a.href = '#'
-      a.onclick = navigator.share({
+      a.onclick = () => navigator.share({
         files: imageFile,
         title: 'Coronazahlen - Jena',
         text: 'Aktuelle Coronazahlen aus Jena'

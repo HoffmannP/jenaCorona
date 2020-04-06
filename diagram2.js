@@ -127,17 +127,16 @@ d3.csv(url, row => ({
     .attr('x', width / 2)
     .attr('y', -9)
 
-    document.body.appendChild(svg.node())
-    svg.node().style.backgroundImage = `url(${shared.bg})`
-    svg.node().style.backgroundPosition = `${margin.left}px ${margin.top}px`
-    svg.node().style.backgroundSize = `${width}px ${height}px`
-  
-    /*
+  document.body.appendChild(svg.node())
+  svg.node().style.backgroundImage = `url(${shared.bg})`
+  svg.node().style.backgroundPosition = `${margin.left}px ${margin.top}px`
+  svg.node().style.backgroundSize = `${width}px ${height}px`
+
+  /*
     const targetImg = document.createElement('img')
     document.body.appendChild(targetImg)
     .then(dataUrl => (targetImg.src = dataUrl))
     */
-    shared.toDataURL(svg.node(), { x: margin.left, y: margin.top, w: width, h: height })
-      .then(dataUrl => (document.querySelector('a[download]').href = dataUrl))
-  })
-  
+  shared.toDataURL(svg.node(), { x: margin.left, y: margin.top, w: width, h: height })
+    .then(dataUrl => (document.querySelector('a[download]').href = dataUrl))
+})

@@ -52,7 +52,7 @@ export function addDownloadButton (name, canvas) {
 export function addShareButton (canvas) {
   canvas.toBlob(function (f) {
     const imageFile = [ f ]
-    if (window.navigator.canShare && navigator.canShare({ files: imageFile })) {
+    if (navigator.canShare && navigator.canShare({ files: imageFile })) {
       const a = document.createElement('a')
       a.innerText = 'share'
       a.href = '#'
@@ -63,6 +63,8 @@ export function addShareButton (canvas) {
       })
       document.querySelector('.links').insertAdjacentText('beforeend', ' | ')
       document.querySelector('.links').insertAdjacentElement('beforeend', a)
-    }
+    } else {
+      window.alert(navigator.canShare);
+      window.alert(navigator.canShare({ files: imageFile }));
   })
 }

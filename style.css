@@ -17,3 +17,7 @@ body {
     font-family: sans-serif;
     color:darkgrey;
 }
+svg {
+    background-color: white;
+    background-repeat: no-repeat;
+}

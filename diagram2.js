@@ -1,17 +1,16 @@
 /* globals d3 */
 
-export const overallWidth = 605
-export const overallHeight = 500
-const margin = {
+import * as shared from './shared.js'
+
+export const margin = {
   left: 33,
   top: 52,
   right: 57,
   bottom: 78
 }
-const width = overallWidth - margin.left - margin.right
-const height = overallHeight - margin.top - margin.bottom
+export const width = shared.overallWidth - margin.left - margin.right
+export const height = shared.overallHeight - margin.top - margin.bottom
 
-export const bg = 'images/bg5.jpg'
 const alpha = 0.66
 
 const categories = [
@@ -28,7 +27,7 @@ const url = 'offiziell.csv'
 const svg = d3.create('svg')
   .style('font-family', 'sans-serif')
 
-export default svg.node()
+svg.node()
 
 d3.csv(url, row => ({
   date: 1000 * row.zeit,
@@ -39,9 +38,9 @@ d3.csv(url, row => ({
   infizierte: +row.erkrankte - +row.genesene - +row.stationaer - +row.tote
 })).then(data => {
   svg
-    .attr('width', overallWidth)
-    .attr('height', overallHeight)
-    .attr('viewBox', [-margin.left, -margin.top, overallWidth, overallHeight])
+    .attr('width', shared.overallWidth)
+    .attr('height', shared.overallHeight)
+    .attr('viewBox', [-margin.left, -margin.top, shared.overallWidth, shared.overallHeight])
     .attr('xmlns', 'http://www.w3.org/2000/svg')
 
   // Transpose the data into layers
@@ -127,4 +126,18 @@ d3.csv(url, row => ({
     .style('font-size', '10')
     .attr('x', width / 2)
     .attr('y', -9)
-})
+
+    document.body.appendChild(svg.node())
+    svg.node().style.backgroundImage = `url(${shared.bg})`
+    svg.node().style.backgroundPosition = `${margin.left}px ${margin.top}px`
+    svg.node().style.backgroundSize = `${width}px ${height}px`
+  
+    /*
+    const targetImg = document.createElement('img')
+    document.body.appendChild(targetImg)
+    .then(dataUrl => (targetImg.src = dataUrl))
+    */
+    shared.toDataURL(svg.node(), { x: margin.left, y: margin.top, w: width, h: height })
+      .then(dataUrl => (document.querySelector('a[download]').href = dataUrl))
+  })
+  

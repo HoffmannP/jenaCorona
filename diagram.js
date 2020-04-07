@@ -195,8 +195,20 @@ d3.csv(url, cleanData).then(data => {
 
   document.body.appendChild(svg.node())
   svg.node().style.backgroundImage = `url(${shared.bg})`
-  svg.node().style.backgroundPosition = `${margin.left}px ${margin.top}px`
-  svg.node().style.backgroundSize = `${width}px ${height}px`
+  if ((document.documentElement.clientWidth < shared.overallWidth) ||
+      (document.documentElement.clientHeight < shared.overallWidth)) {
+    const factor = Math.min(
+      document.documentElement.clientWidth / shared.overallWidth,
+      document.documentElement.clientHeight / shared.overallHeight
+    )
+    svg.attr('width', factor * shared.overallWidth)
+    svg.attr('height', factor * shared.overallHeight)
+    svg.node().style.backgroundPosition = `${factor * margin.left}px ${factor * margin.top}px`
+    svg.node().style.backgroundSize = `${factor * width}px ${factor * height}px`
+  } else {
+    svg.node().style.backgroundPosition = `${margin.left}px ${margin.top}px`
+    svg.node().style.backgroundSize = `${width}px ${height}px`
+  }
 
   /*
     const targetImg = document.createElement('img')

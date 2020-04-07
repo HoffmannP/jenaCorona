@@ -61,7 +61,8 @@ export function addShareButton (name, canvas) {
         title: 'Coronazahlen - Jena',
         text: 'Aktuelle Coronazahlen aus Jena',
         url: 'https://hoffis-eck.de/jenaCorona'
-      })
+      }).then(result => console.log('Successfull share', result))
+        .catch(e => console.debug(e.name, e.message))
       document.querySelector('.links').insertAdjacentText('beforeend', ' | ')
       document.querySelector('.links').insertAdjacentElement('beforeend', a)
     }

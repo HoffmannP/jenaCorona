@@ -51,7 +51,7 @@ export function addDownloadButton (name, canvas) {
 
 export function addShareButton (name, canvas) {
   canvas.toBlob(function (f) {
-    const imageFile = [ new window.File([f], name) ]
+    const imageFile = [ new window.File([f], name, { type: f.type }) ]
     if (navigator.canShare && navigator.canShare({ files: imageFile })) {
       const a = document.createElement('a')
       a.innerText = 'share'

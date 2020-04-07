@@ -15,7 +15,7 @@ const alpha = 0.66
 
 const categories = [
   { name: 'Genesen', key: 'genesene', color: `rgba(  0, 128,   0, ${alpha})` },
-  { name: 'Tote', key: 'tote', color: `rgba(0,     0,   0, ${alpha})` },
+  { name: 'Tot', key: 'tote', color: `rgba(0,     0,   0, ${alpha})` },
   { name: 'Infiziert', key: 'infizierte', color: `rgba(  0,   0, 255, ${alpha})` },
   { name: 'Stationär', key: 'stationaer', color: `rgba(255, 165,   0, ${alpha})` },
   { name: 'Schwerer Verlauf', key: 'schwerer_verlauf', color: `rgba(255,   0,   0, ${alpha})` }
@@ -103,19 +103,33 @@ d3.csv(url, row => ({
     .data([ categories[1], categories[0], ...categories.slice(2) ])
     .enter().append('g')
     .each((d, i, g) => d3.select(g[i])
+      .attr('transform', `translate(${offsetPos[i]}, ${height + margin.bottom / 2 - 9})`)
       .call(g => g.append('rect')
-        .attr('x', offsetPos[i])
-        .attr('y', height + margin.bottom / 2)
         .attr('width', offsetWidth[i])
-        .attr('height', 21)
+        .attr('height', 17)
         .style('fill', d.color))
       .call(g => g.append('text')
-        .attr('x', 5 + offsetPos[i])
-        .attr('y', height + margin.bottom / 2 + 5)
-        .text(`${d.name} (${Math.abs(data[data.length - 1][d.key])})`)
+        .attr('x', 3)
+        .attr('y', 3)
+        .text(`${d.name}: ${Math.abs(data[data.length - 1][d.key])}`)
         .style('dominant-baseline', 'hanging')
         .style('font-size', 13)
         .style('fill', ['white', 'white', 'white', 'black', 'black'][i])))
+  svg.append('g')
+    .attr('class', 'legend')
+    .attr('transform', `translate(${offsetPos[2]}, ${height + margin.bottom / 2 + 8})`)
+    .call(g => g.append('rect')
+      .attr('width', offsetWidth[2] + offsetWidth[3] + offsetWidth[4])
+      .attr('height', 17)
+      .style('fill', 'yellow'))
+    .call(g => g.append('text')
+      .attr('x', (offsetWidth[2] + offsetWidth[3] + offsetWidth[4]) / 2)
+      .attr('y', 3)
+      .text(`SARS-CoV-2 positiv getestet gesamt: ${data[data.length - 1]['infizierte'] + data[data.length - 1]['stationaer'] + data[data.length - 1]['schwerer_verlauf']}`)
+      .style('dominant-baseline', 'hanging')
+      .style('text-anchor', 'middle')
+      .style('font-size', 13)
+      .style('fill', 'black'))
 
   svg.append('text')
     .text('🄯2019 hoffis-eck.de/jenaCorona')

@@ -56,13 +56,16 @@ export function addShareButton (name, canvas) {
       const a = document.createElement('a')
       a.innerText = 'share'
       a.href = '#'
-      a.onclick = () => navigator.share({
-        files: imageFile,
-        title: 'Coronazahlen - Jena',
-        text: 'Aktuelle Coronazahlen aus Jena',
-        url: 'https://hoffis-eck.de/jenaCorona'
-      }).then(result => console.log('Successfull share', result))
-        .catch(e => console.debug(e.name, e.message))
+      a.addEventListener('click', () => {
+        navigator.share({
+          files: imageFile,
+          title: 'Coronazahlen - Jena',
+          text: 'Aktuelle Coronazahlen aus Jena',
+          url: 'https://hoffis-eck.de/jenaCorona'
+        })
+          .then(result => console.log('Successfull share', result))
+          .catch(e => console.debug(e.name, e.message))
+      })
       document.querySelector('.links').insertAdjacentText('beforeend', ' | ')
       document.querySelector('.links').insertAdjacentElement('beforeend', a)
     }

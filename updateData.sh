@@ -7,7 +7,7 @@ then
 	# echo 'Neu'
 	mv 'corona_erkrankungen_jena.csv' 'offiziell.csv'
 	git add 'offiziell.csv'
-	git commit -m 'Neue Daten'
+	git commit -m 'Neue Daten um '"$(date)"
 	git push
 else
 	# echo 'Alt'

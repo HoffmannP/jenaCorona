@@ -49,23 +49,31 @@ export function addDownloadButton (name, canvas) {
   document.querySelector('.links').insertAdjacentElement('beforeend', a)
 }
 
+export function share (file) {
+  return clickEvent => {
+    if (navigator.canShare && navigator.canShare({ files: [ file ] })) {
+      navigator.share({
+        url: 'https://hoffis-eck.de/jenaCorona',
+        title: 'Coronazahlen - Jena',
+        text: 'Aktuelle Coronazahlen aus Jena',
+        files: [ file ]
+      })
+        .then(result => console.log('Success', result))
+        .catch(error => console.log('Error', error))
+    } else {
+      console.log('Not available')
+    }
+  }
+}
+
 export function addShareButton (name, canvas) {
-  canvas.toBlob(function (f) {
-    const imageFile = [ new window.File([f], name, { type: f.type }) ]
-    if (navigator.canShare && navigator.canShare({ files: imageFile })) {
+  canvas.toBlob(function (blob) {
+    const imageFile = new window.File([blob], `${name}.png`, { type: blob.type })
+    if (navigator.canShare && navigator.canShare({ files: [ imageFile ] })) {
       const a = document.createElement('a')
       a.innerText = 'share'
       a.href = '#'
-      a.addEventListener('click', () => {
-        navigator.share({
-          files: imageFile,
-          title: 'Coronazahlen - Jena',
-          text: 'Aktuelle Coronazahlen aus Jena',
-          url: 'https://hoffis-eck.de/jenaCorona'
-        })
-          .then(result => console.log('Successfull share', result))
-          .catch(e => console.debug(e.name, e.message))
-      })
+      a.addEventListener('click', share(imageFile))
       document.querySelector('.links').insertAdjacentText('beforeend', ' | ')
       document.querySelector('.links').insertAdjacentElement('beforeend', a)
     }

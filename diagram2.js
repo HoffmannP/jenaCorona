@@ -1,6 +1,7 @@
 /* globals d3 */
 
 import * as shared from './shared.js'
+import de_DE from './local.de_DE.js'
 
 export const margin = {
   left: 33,
@@ -11,7 +12,7 @@ export const margin = {
 export const width = shared.overallWidth - margin.left - margin.right
 export const height = shared.overallHeight - margin.top - margin.bottom
 
-const alpha = 0.66
+const alpha = 0.6
 
 const categories = [
   { name: 'Genesen', key: 'genesene', color: `rgba(  0, 128,   0, ${alpha})` },
@@ -21,6 +22,7 @@ const categories = [
   { name: 'Schwerer Verlauf', key: 'schwerer_verlauf', color: `rgba(255,   0,   0, ${alpha})` }
 ]
 
+d3.timeFormatDefaultLocale(de_DE)
 const toDate = u => d3.timeFormat('%e.%m.')(new Date(u))
 
 const url = 'offiziell.csv'
@@ -30,7 +32,7 @@ const svg = d3.create('svg')
 svg.node()
 
 d3.csv(url, row => ({
-  date: 1000 * row.zeit,
+  zeit: 1000 * row.zeit,
   tote: -row.tote || -1e-9,
   schwerer_verlauf: (+row.schwerer_verlauf) || 1e-9,
   stationaer: (+row.stationaer - +row.schwerer_verlauf) || 1e-9,
@@ -43,6 +45,8 @@ d3.csv(url, row => ({
     .attr('viewBox', [-margin.left, -margin.top, shared.overallWidth, shared.overallHeight])
     .attr('xmlns', 'http://www.w3.org/2000/svg')
 
+  const newest = data[data.length -1]
+
   // Transpose the data into layers
   const stack = d3.stack()
     .keys(categories.map(c => c.key))
@@ -50,11 +54,11 @@ d3.csv(url, row => ({
     .offset(d3.stackOffsetDiverging)
   const datasets = stack(data)
 
-  const x = d3.scaleLinear().domain([d3.min(data, d => d.date), d3.max(data, d => d.date)]).range([0, width])
+  const x = d3.scaleLinear().domain([d3.min(data, d => d.zeit), d3.max(data, d => d.zeit)]).range([0, width])
   const y1 = d3.scaleLinear().domain([d3.min(data, d => d.genesene), d3.max(data, d => d.infizierte)]).nice().range([height, 0])
 
   const area = d3.area()
-    .x((d, i) => x(d.data.date))
+    .x((d, i) => x(d.data.zeit))
     .y0(d => y1(d[0]))
     .y1(d => y1(d[1]))
 
@@ -111,7 +115,7 @@ d3.csv(url, row => ({
       .call(g => g.append('text')
         .attr('x', 3)
         .attr('y', 3)
-        .text(`${d.name}: ${Math.abs(data[data.length - 1][d.key])}`)
+        .text(`${d.name}: ${Math.abs(newest[d.key])}`)
         .style('dominant-baseline', 'hanging')
         .style('font-size', 13)
         .style('fill', ['white', 'white', 'white', 'black', 'black'][i])))
@@ -121,23 +125,17 @@ d3.csv(url, row => ({
     .call(g => g.append('rect')
       .attr('width', offsetWidth[2] + offsetWidth[3] + offsetWidth[4])
       .attr('height', 17)
-      .style('fill', 'yellow'))
+      .style('fill', `rgba(255, 255,   0, ${alpha})`))
     .call(g => g.append('text')
       .attr('x', (offsetWidth[2] + offsetWidth[3] + offsetWidth[4]) / 2)
       .attr('y', 3)
-      .text(`SARS-CoV-2 positiv getestet gesamt: ${data[data.length - 1]['infizierte'] + data[data.length - 1]['stationaer'] + data[data.length - 1]['schwerer_verlauf']}`)
+      .text(`SARS-CoV-2 positiv getestet gesamt: ${newest.infizierte + newest.stationaer + newest.schwerer_verlauf}`)
       .style('dominant-baseline', 'hanging')
       .style('text-anchor', 'middle')
       .style('font-size', 13)
       .style('fill', 'black'))
 
-  svg.append('text')
-    .text('🄯2019 hoffis-eck.de/jenaCorona')
-    .style('fill', '#bbb')
-    .style('font-family', 'sans-serif')
-    .style('dominant-baseline', 'middle')
-    .style('text-anchor', 'middle')
-    .style('font-size', '10')
+  shared.disclaimer(d3, svg, new Date(newest.zeit))
     .attr('x', width / 2)
     .attr('y', -9)
 

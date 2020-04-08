@@ -2,6 +2,7 @@
 
 import * as shared from './shared.js'
 import * as lib from './lib.js'
+import de_DE from './local.de_DE.js'
 
 export const margin = {
   left: 43,
@@ -33,16 +34,7 @@ function cleanData (row) {
 
 const formatPercent = x => `${Math.round(100 * x)} %`
 
-d3.timeFormatDefaultLocale({
-  'dateTime': '%A, der %e. %B %Y, %X',
-  'date': '%d.%m.%Y',
-  'time': '%H:%M:%S',
-  'periods': ['AM', 'PM'],
-  'days': ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-  'shortDays': ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-  'months': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-  'shortMonths': ['Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
-})
+d3.timeFormatDefaultLocale(de_DE)
 const toDate = u => d3.timeFormat('%a, %e. %b')(new Date(u))
 
 const url = 'offiziell.csv'
@@ -183,13 +175,7 @@ d3.csv(url, cleanData).then(data => {
     .attr('x', width / 2)
     .attr('y', margin.top + height / 10)
 
-  svg.append('text')
-    .text('🄯2019 hoffis-eck.de/jenaCorona')
-    .style('fill', '#bbb')
-    .style('font-family', 'sans-serif')
-    .style('dominant-baseline', 'middle')
-    .style('text-anchor', 'middle')
-    .style('font-size', '10')
+  shared.disclaimer(d3, svg, new Date(data[data.length - 1].date))
     .attr('x', width / 2)
     .attr('y', -9)
 

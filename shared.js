@@ -79,3 +79,13 @@ export function addShareButton (name, canvas) {
     }
   })
 }
+
+export function disclaimer (d3, svg, date) {
+  return svg.append('text')
+    .text(`🄯2019 hoffis-eck.de/jenaCorona, letzte Aktualisierung: ${d3.timeFormat('%a, %e. %b %H:%M')(date)}`)
+    .style('fill', '#bbb')
+    .style('font-family', 'sans-serif')
+    .style('dominant-baseline', 'middle')
+    .style('text-anchor', 'middle')
+    .style('font-size', '10')
+}

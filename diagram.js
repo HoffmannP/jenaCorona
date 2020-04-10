@@ -24,6 +24,7 @@ const categories = [
 
 const toPercent = p => `${Math.round(100 * p)} %`
 const toPercentDez = p => `${Math.round(1000 * p) / 10} %`
+const withSign = c => `${c > 0 ? '+' : (c === 0 ? '±' : '')}${c}`
 
 d3.timeFormatDefaultLocale(de_DE)
 const toDate = u => d3.timeFormat('%e.%m.')(new Date(u))
@@ -58,14 +59,14 @@ d3.csv(url, row => ({
 
   // Calculate rate
   const rate = data.map(
-    (v, i, d) => i > 0 ? { zeit: v.zeit, rate: v.aktiv / d[i-1].aktiv - 1 } : undefined
+    (v, i, d) => i > 0 ? { zeit: v.zeit, rate: v.aktiv / d[i - 1].aktiv - 1 } : undefined
   ).slice(1)
 
-  const newest = { ...data[data.length -1], rate: rate[rate.length - 1].rate }
+  const newest = { ...data[data.length - 1], rate: rate[rate.length - 1].rate, count: data[data.length - 1].aktiv - data[data.length - 2].aktiv }
 
   const x = d3.scaleLinear().domain([d3.min(data, d => d.zeit), d3.max(data, d => d.zeit)]).range([0, width])
   const y1 = d3.scaleLinear().domain([d3.min(data, d => d.genesene), d3.max(data, d => d.infizierte)]).nice().range([height, 0])
-  const y2 = d3.scaleLinear().domain([d3.min(rate, d => d.rate), d3.max(rate.slice(6), d => d.rate)]).nice().range([height, 0]).clamp(true)
+  const y2 = d3.scaleLinear().domain([d3.min(rate, d => d.rate), d3.max(rate.slice(8), d => d.rate)]).nice().range([height, 0]).clamp(true)
 
   const area = d3.area()
     .x((d, i) => x(d.data.zeit))
@@ -92,7 +93,7 @@ d3.csv(url, row => ({
     .attr('class', 'lines')
     .datum(rate)
     .attr('fill', 'none')
-    .attr('stroke', `rgb(128,   0, 128, ${(.5 + alpha/2)})`)
+    .attr('stroke', `rgb(128,   0, 128, ${(0.5 + alpha / 2)})`)
     .attr('stroke-width', 2)
     .attr('stroke-linejoin', 'round')
     .attr('stroke-linecap', 'round')
@@ -166,7 +167,7 @@ d3.csv(url, row => ({
     .call(g => g.append('text')
       .attr('x', 3)
       .attr('y', 3)
-      .text(`Änderungsrate: ${toPercentDez(newest.rate)}`)
+      .text(`Änderungsrate: ${toPercentDez(newest.rate)} / ${withSign(newest.count)}`)
       .style('dominant-baseline', 'hanging')
       .style('font-size', 13)
       .style('fill', 'white'))
@@ -185,7 +186,7 @@ d3.csv(url, row => ({
       .style('text-anchor', 'middle')
       .style('font-size', 13)
       .style('fill', 'black'))
-  
+
   shared.disclaimer(d3, svg, new Date(newest.zeit))
     .attr('x', width / 2)
     .attr('y', -9)

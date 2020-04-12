@@ -192,7 +192,12 @@ d3.csv(url, row => ({
     .attr('y', -9)
 
   document.body.appendChild(svg.node())
-  svg.node().style.backgroundImage = `url(${shared.bg})`
+  svg.node().style.backgroundImage = `
+    linear-gradient(
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.6)
+    ),
+    url(${shared.bg})`
   if ((document.documentElement.clientWidth < shared.overallWidth) ||
         (document.documentElement.clientHeight < shared.overallWidth)) {
     const factor = Math.min(

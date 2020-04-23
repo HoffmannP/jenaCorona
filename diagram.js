@@ -69,6 +69,8 @@ const svg = d3.create('svg')
 
 const getData = quelleSelect => d3.csv(quellen[quelleSelect].url, quellen[quelleSelect].prepare)
 
+const ansteckend = d => d.infizierte + d.stationaer + d.schwerer_verlauf
+
 Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data]) => {
   const fs = {
     _18: `${18 / fontSizeRatio}px`,
@@ -90,7 +92,7 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
 
   // Calculate rate
   const rate = data.map(
-    (v, i, d) => i > 0 ? { zeit: v.zeit, rate: v.aktiv / d[i - 1].aktiv - 1 } : undefined
+    (v, i, d) => i > 0 ? { zeit: v.zeit, rate: (v.aktiv - d[i - 1].aktiv) / ansteckend(v) } : undefined
   ).slice(1)
 
   const newest = { ...data[data.length - 1], rate: rate[rate.length - 1].rate, count: data[data.length - 1].aktiv - data[data.length - 2].aktiv }
@@ -209,7 +211,7 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
     .call(g => g.append('text')
       .attr('x', 3)
       .attr('y', 9)
-      .text(`Änderungsrate: ${d3.format('.1%')(newest.rate)} / ${withSign(newest.count)}`)
+      .text(`Ansteckungen: ${d3.format('.1%')(newest.rate)} / ${withSign(newest.count)}`)
       .style('dominant-baseline', 'middle')
       .style('font-size', fs._13)
       .style('fill', 'white'))
@@ -223,7 +225,7 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
     .call(g => g.append('text')
       .attr('x', (offsetWidth[2] + offsetWidth[3] + offsetWidth[4]) / 2)
       .attr('y', 9)
-      .text(`SARS-CoV-2 positiv getestet gesamt: ${newest.infizierte + newest.stationaer + newest.schwerer_verlauf}`)
+      .text(`SARS-CoV-2 positiv getestet gesamt: ${ansteckend(newest)}`)
       .style('dominant-baseline', 'middle')
       .style('text-anchor', 'middle')
       .style('font-size', fs._13)

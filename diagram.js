@@ -1,12 +1,14 @@
 /* globals d3 */
 
 import * as shared from './shared.js'
-import de_DE from './local.de_DE.js'
+import deDE from './local.de_DE.js'
+
+const source = decodeURI(document.location.search.substr(1)) || 'Jena'
 
 export const margin = {
   left: 45,
   top: 45,
-  right: 45,
+  right: 54,
   bottom: 85
 }
 export const width = shared.overallWidth - margin.left - margin.right
@@ -22,28 +24,57 @@ const categories = [
   { name: 'Schwerer Verlauf', key: 'schwerer_verlauf', color: `rgba(255,   0,   0, ${alpha})` }
 ]
 
-const toPercent = p => `${Math.round(100 * p)} %`
-const toPercentDez = p => `${Math.round(1000 * p) / 10} %`
 const withSign = c => `${c > 0 ? '+' : (c === 0 ? '±' : '')}${c}`
 
-d3.timeFormatDefaultLocale(de_DE)
-const toDate = u => d3.timeFormat('%e.%m.')(new Date(u))
+d3.timeFormatDefaultLocale(deDE.time)
+d3.formatDefaultLocale(deDE.number)
 
-const url = 'offiziell.csv'
+const toDate = u => d3.timeFormat('%e.%m.')(new Date(u))
+const timeParse = d3.timeParse('%d.%m.%Y %H:%M')
+
+const quellen = {
+  Jena: {
+    url: 'offiziell.csv',
+    prepare: row => ({
+      zeit: row.zeit * 1000,
+      tote: -row.tote || -1e-9,
+      schwerer_verlauf: (+row.schwerer_verlauf) || 1e-9,
+      stationaer: (+row.stationaer - +row.schwerer_verlauf) || 1e-9,
+      genesene: -row.genesene || 1e-9,
+      infizierte: +row.erkrankte - +row.genesene - +row.stationaer - +row.tote,
+      aktiv: +row.erkrankte || 1e-9
+    })
+  },
+  Thüringen: {
+    url: 'thueringen.csv',
+    prepare: row => {
+      const rateNochAktiv = (+row.erkrankte - +row.genesene - +row.tote) / +row.erkrankte
+      const stationär = Math.round((+row.stationaer - +row.schwerer_verlauf) * rateNochAktiv)
+      const schwererVerlauf = Math.round(+row.stationaer * rateNochAktiv)
+      return {
+        zeit: timeParse(row.veroeffentlichung),
+        tote: -row.tote || -1e-9,
+        schwerer_verlauf: schwererVerlauf || 1e-9,
+        stationaer: stationär || 1e-9,
+        genesene: -row.genesene || 1e-9,
+        infizierte: +row.erkrankte - +row.genesene - stationär - schwererVerlauf - +row.tote,
+        aktiv: +row.erkrankte || 1e-9
+      }
+    }
+  }
+}
+
 const svg = d3.create('svg')
   .style('font-family', 'sans-serif')
 
-svg.node()
+const getData = quelleSelect => d3.csv(quellen[quelleSelect].url, quellen[quelleSelect].prepare)
 
-d3.csv(url, row => ({
-  zeit: 1000 * row.zeit,
-  tote: -row.tote || -1e-9,
-  schwerer_verlauf: (+row.schwerer_verlauf) || 1e-9,
-  stationaer: (+row.stationaer - +row.schwerer_verlauf) || 1e-9,
-  genesene: -row.genesene,
-  infizierte: +row.erkrankte - +row.genesene - +row.stationaer - +row.tote,
-  aktiv: +row.erkrankte
-})).then(data => {
+Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data]) => {
+  const fs = {
+    _18: `${18 / fontSizeRatio}px`,
+    _13: `${13 / fontSizeRatio}px`,
+    _10: `${10 / fontSizeRatio}px`
+  }
   svg
     .attr('width', shared.overallWidth)
     .attr('height', shared.overallHeight)
@@ -65,7 +96,7 @@ d3.csv(url, row => ({
   const newest = { ...data[data.length - 1], rate: rate[rate.length - 1].rate, count: data[data.length - 1].aktiv - data[data.length - 2].aktiv }
 
   const x = d3.scaleLinear().domain([d3.min(data, d => d.zeit), d3.max(data, d => d.zeit)]).range([0, width])
-  const y1 = d3.scaleLinear().domain([d3.min(data, d => d.genesene), d3.max(data, d => d.infizierte)]).nice().range([height, 0])
+  const y1 = d3.scaleLinear().domain([d3.min(data, d => d.genesene + d.tote), d3.max(data, d => d.infizierte + d.stationaer + d.schwerer_verlauf)]).nice().range([height, 0])
   const y2 = d3.scaleLinear().domain([d3.min(rate, d => d.rate), d3.max(rate.slice(8), d => d.rate)]).nice().range([height, 0]).clamp(true)
 
   const area = d3.area()
@@ -76,7 +107,7 @@ d3.csv(url, row => ({
   svg.append('g').attr('class', 'x axis')
     .attr('transform', `translate(0,${height})`)
     .style('color', '#bbb')
-    .style('font-size', 13)
+    .style('font-size', fs._13)
     .call(d3.axisBottom(x).tickFormat(toDate))
     .selectAll('text')
     .attr('color', 'black')
@@ -111,8 +142,8 @@ d3.csv(url, row => ({
   svg.append('g').attr('class', 'y1 axis')
     .attr('transform', `translate(${width},0)`)
     .style('color', '#bbb')
-    .style('font-size', 13)
-    .call(d3.axisRight(y1))
+    .style('font-size', fs._13)
+    .call(d3.axisRight(y1).tickFormat(d3.format(',')))
     .call(g => g.selectAll('.tick line')
       .attr('x2', -width))
     .selectAll('text')
@@ -121,23 +152,34 @@ d3.csv(url, row => ({
   svg.append('g').attr('class', 'y2 axis')
     .attr('transform', `translate(0,0)`)
     .style('color', '#bbb')
-    .style('font-size', 13)
-    .call(d3.axisLeft(y2).tickFormat(toPercent))
+    .style('font-size', fs._13)
+    .call(d3.axisLeft(y2).tickFormat(d3.format('.0%')))
     .selectAll('text')
     .attr('color', 'black')
 
   svg.append('text')
-    .text('Coronafälle Jena')
-    .style('font-size', 18)
-    .style('dominant-baseline', 'central')
+    .text(`Coronafälle ${source}`)
+    .style('font-size', fs._18)
+    .style('dominant-baseline', 'middle')
     .style('text-anchor', 'middle')
     .attr('x', width / 2)
     .attr('y', -27)
 
+  if (source === 'Thüringen') {
+    svg.append('text')
+      .attr('fill', 'grey')
+      .text(`* Zahlen anhand der Aktivenrate geschätzt`)
+      .style('font-size', fs._10)
+      .style('dominant-baseline', 'middle')
+      .style('text-anchor', 'end')
+      .attr('x', shared.overallWidth - margin.right - margin.left)
+      .attr('y', shared.overallHeight - margin.top - 10)
+  }
+
   const lw = width / categories.length
   const ofst = 8
-  const offsetPos = [0, lw - ofst, 2 * lw - 2 * ofst, 3 * lw - 3 * ofst, 4 * lw - 4 * ofst]
-  const offsetWidth = [lw - ofst, lw - ofst, lw - ofst, lw - ofst, lw + 4 * ofst]
+  const offsetPos = [0, lw - 3 * ofst, 2 * lw - 2 * ofst, 3 * lw - 3 * ofst, 4 * lw - 4 * ofst]
+  const offsetWidth = [lw - 3 * ofst, lw + 1 * ofst, lw - ofst, lw - ofst, lw + 4 * ofst]
 
   svg.append('g')
     .attr('class', 'legend')
@@ -152,10 +194,10 @@ d3.csv(url, row => ({
         .style('fill', d.color))
       .call(g => g.append('text')
         .attr('x', 3)
-        .attr('y', 3)
-        .text(`${d.name}: ${Math.abs(newest[d.key])}`)
-        .style('dominant-baseline', 'hanging')
-        .style('font-size', 13)
+        .attr('y', 9)
+        .text(`${d.name}: ${Math.abs(newest[d.key])}${i > 2 && source === 'Thüringen' ? '*' : ''}`)
+        .style('dominant-baseline', 'middle')
+        .style('font-size', fs._13)
         .style('fill', ['white', 'white', 'white', 'black', 'black'][i])))
   svg.append('g')
     .attr('class', 'legend')
@@ -166,10 +208,10 @@ d3.csv(url, row => ({
       .style('fill', `rgb(128,   0, 128, ${alpha})`))
     .call(g => g.append('text')
       .attr('x', 3)
-      .attr('y', 3)
-      .text(`Änderungsrate: ${toPercentDez(newest.rate)} / ${withSign(newest.count)}`)
-      .style('dominant-baseline', 'hanging')
-      .style('font-size', 13)
+      .attr('y', 9)
+      .text(`Änderungsrate: ${d3.format('.1%')(newest.rate)} / ${withSign(newest.count)}`)
+      .style('dominant-baseline', 'middle')
+      .style('font-size', fs._13)
       .style('fill', 'white'))
   svg.append('g')
     .attr('class', 'legend')
@@ -180,11 +222,11 @@ d3.csv(url, row => ({
       .style('fill', `rgba(255, 255,   0, ${alpha})`))
     .call(g => g.append('text')
       .attr('x', (offsetWidth[2] + offsetWidth[3] + offsetWidth[4]) / 2)
-      .attr('y', 3)
+      .attr('y', 9)
       .text(`SARS-CoV-2 positiv getestet gesamt: ${newest.infizierte + newest.stationaer + newest.schwerer_verlauf}`)
-      .style('dominant-baseline', 'hanging')
+      .style('dominant-baseline', 'middle')
       .style('text-anchor', 'middle')
-      .style('font-size', 13)
+      .style('font-size', fs._13)
       .style('fill', 'black'))
 
   shared.disclaimer(d3, svg, new Date(newest.zeit))
@@ -219,9 +261,12 @@ d3.csv(url, row => ({
       .then(dataUrl => (targetImg.src = canvas.toDataUrl()))
     */
 
+  Object.keys(quellen).filter(s => s !== source).map((s, i) => `${i > 0 ? '| ' : ''}<a href=?${s}>${s}</a>`).forEach(
+    link => document.querySelector('.links').insertAdjacentHTML('beforeend', link)
+  )
   shared.diagramToFile(svg, { x: margin.left, y: margin.top, w: width, h: height })
     .then(canvas => {
-      shared.addDownloadButton('Jena', canvas)
-      shared.addShareButton('Jena', canvas)
+      shared.addDownloadButton(source, canvas)
+      shared.addShareButton(source, canvas)
     })
 })

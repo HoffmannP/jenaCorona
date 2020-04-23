@@ -1,7 +1,7 @@
 export const overallWidth = 605
 export const overallHeight = 500
 
-export const bg = 'images/bg9.jpg'
+export const bg = 'images/bg10.jpg'
 
 function loadBackground (backgroundImageUrl) {
   return new Promise(function (resolve) {
@@ -49,13 +49,13 @@ export function addDownloadButton (name, canvas) {
   document.querySelector('.links').insertAdjacentElement('beforeend', a)
 }
 
-export function share (file) {
+export function share (source, file) {
   return clickEvent => {
     if (navigator.canShare && navigator.canShare({ files: [ file ] })) {
       navigator.share({
         url: 'https://hoffis-eck.de/jenaCorona',
-        title: 'Coronazahlen - Jena',
-        text: 'Aktuelle Coronazahlen aus Jena',
+        title: `Coronafälle - ${source}`,
+        text: `Aktuelle Coronafälle aus ${source}`,
         files: [ file ]
       })
         .then(result => console.log('Success', result))
@@ -66,14 +66,14 @@ export function share (file) {
   }
 }
 
-export function addShareButton (name, canvas) {
+export function addShareButton (source, canvas) {
   canvas.toBlob(function (blob) {
-    const imageFile = new window.File([blob], `${name}.png`, { type: blob.type })
+    const imageFile = new window.File([blob], `Coronafälle ${source}.png`, { type: blob.type })
     if (navigator.canShare && navigator.canShare({ files: [ imageFile ] })) {
       const a = document.createElement('a')
       a.innerText = 'share'
       a.href = '#'
-      a.addEventListener('click', share(imageFile))
+      a.addEventListener('click', share(source, imageFile))
       document.querySelector('.links').insertAdjacentText('beforeend', ' | ')
       document.querySelector('.links').insertAdjacentElement('beforeend', a)
     }
@@ -87,5 +87,29 @@ export function disclaimer (d3, svg, date) {
     .style('font-family', 'sans-serif')
     .style('dominant-baseline', 'middle')
     .style('text-anchor', 'middle')
-    .style('font-size', '10')
+    .style('font-size', '10px')
+}
+
+export function calcFontSize () {
+  return new Promise(function (resolve) {
+    document.body.insertAdjacentHTML('afterbegin', '<svg id="fontSize"><text id="M" font-size="13">M</text></svg>')
+    const M = document.querySelector('#M')
+    const textBoxHeight13 = 15
+    let interval
+    let waiting = 30
+    function calc () {
+      let ratio = M.getBBox().height / textBoxHeight13
+      waiting--
+      if (waiting <= 0) {
+        console.error('Warte zu lange')
+        ratio = 1
+      }
+      if (ratio > 0) {
+        resolve(ratio)
+        window.clearInterval(interval)
+        document.querySelector('#fontSize').remove()
+      }
+    }
+    interval = window.setInterval(calc, 10)
+  })
 }

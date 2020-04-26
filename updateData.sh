@@ -5,11 +5,11 @@ new=0
 csvJ="corona_erkrankungen_jena.csv"
 wget -q -O $csvJ 'https://opendata.jena.de/dataset/2cc7773d-beba-43ad-9808-a420a67ffcb3/resource/d3ba07b6-fb19-451b-b902-5b18d8e8cbad/download/corona_erkrankungen_jena.csv'
 
-if [[ $(stat -c %s 'offiziell.csv') -lt $(stat -c %s $csvJ) ]]
+if [[ $(stat -c %s 'jena.csv') -lt $(stat -c %s $csvJ) ]]
 then
 	# echo 'Neu'
-	mv $csvJ 'offiziell.csv'
-	git add 'offiziell.csv'
+	mv $csvJ 'jena.csv'
+	git add 'jena.csv'
 	new=1
 else
 	# echo 'Alt'

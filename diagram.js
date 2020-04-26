@@ -34,7 +34,7 @@ const timeParse = d3.timeParse('%d.%m.%Y %H:%M')
 
 const quellen = {
   Jena: {
-    url: 'offiziell.csv',
+    url: 'jena.csv',
     prepare: row => ({
       zeit: row.zeit * 1000,
       tote: -row.tote || -1e-9,

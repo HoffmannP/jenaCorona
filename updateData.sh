@@ -22,23 +22,23 @@ newestSearch="https://mobile.twitter.com$(http "https://mobile.twitter.com/searc
  	pup 'a[href^="/search"]:contains("Refresh")' 'attr{href}')"
 
 newLine=$(http "$newestSearch" | pup 'div.tweet-text' 'text{}' |\
-    sed -rn '
-    /Stand/{s/^.*Stand ([0-9]*)\.([0-9]*)\., ([0-9]*) Uhr\):.*$/1 \1.\2.20 \3:00/;p}
-    /Infizierte insgesamt/{s/^.*Infizierte insgesamt[^0-9]+([.0-9]+).*$/2 \1/;s/\.//;p}
-    /Verstorbene/{s/^.*Verstorbene[^0-9]+([.0-9]+).*$/4 \1/;s/\.//;p}
-    /Genesene/{s/^.*Genesene[^0-9]+([.0-9]+).*$/3 \1/;s/\.//;p}
-    /Patienten station/{s/^.*Patienten station[^0-9]+([.0-9]+).*$/5 \1/;s/\.//;p}
-    /schwere Verl/{s/^.*schwere Verl[^0-9]+([.0-9]+).*$/6 \1/;s/\.//;p}' |\
-    sort |\
-    sed 's/^..//' |\
-    sed 'N;N;N;N;N;s/\n/,/g')
+	sed -rn '
+		/Stand/{s/^.*Stand ([0-9]*)\.([0-9]*)\., ([0-9]*) Uhr\):.*$/1 \1.\2.20 \3:00/;p}
+		/Infizierte insgesamt/{s/^.*Infizierte insgesamt[^0-9]+([.0-9]+).*$/2 \1/;s/\.//;p}
+		/Verstorbene/{s/^.*Verstorbene[^0-9]+([.0-9]+).*$/4 \1/;s/\.//;p}
+		/Genesene/{s/^.*Genesene[^0-9]+([.0-9]+).*$/3 \1/;s/\.//;p}
+		/Patienten station/{s/^.*Patienten station[^0-9]+([.0-9]+).*$/5 \1/;s/\.//;p}
+		/schwere Verl/{s/^.*schwere Verl[^0-9]+([.0-9]+).*$/6 \1/;s/\.//;p}' |\
+    	sort |\
+	sed 's/^..//' |\
+	sed 'N;N;N;N;N;s/\n/,/g')
 
 if [[ $(tail -1 "$csvTh" | cut -d, -f1) != $(echo $newLine | cut -d, -f1) ]]
 then
 	# echo 'Neu'
-    echo $newLine >> $csvTh
-    git add $csvTh
-    new=1
+	echo -n $newLine >> $csvTh
+	git add $csvTh
+	new=1
 else
 	# echo 'Alt'  
 	echo "" > /dev/null

@@ -36,7 +36,7 @@ newLine=$(http "$newestSearch" | pup 'div.tweet-text' 'text{}' |\
 if [[ $(tail -1 "$csvTh" | cut -d, -f1) != $(echo $newLine | cut -d, -f1) ]]
 then
 	# echo 'Neu'
-	echo -n $newLine >> $csvTh
+	echo $newLine >> $csvTh
 	git add $csvTh
 	new=1
 else

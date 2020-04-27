@@ -33,7 +33,7 @@ newLine=$(http "$newestSearch" | pup 'div.tweet-text' 'text{}' |\
 	sed 's/^..//' |\
 	sed 'N;N;N;N;N;s/\n/,/g')
 
-if [[ $(tail -1 "$csvTh" | cut -d, -f1) != $(echo $newLine | cut -d, -f1) ]]
+if [[ -n "$newline" ]] && [[ $(tail -1 "$csvTh" | cut -d, -f1) != $(echo $newLine | cut -d, -f1) ]]
 then
 	# echo 'Neu'
 	echo "$newLine" >> $csvTh

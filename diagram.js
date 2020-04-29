@@ -69,7 +69,7 @@ const svg = d3.create('svg')
 
 const getData = quelleSelect => d3.csv(quellen[quelleSelect].url, quellen[quelleSelect].prepare)
 
-const ansteckend = d => d.infizierte + d.stationaer + d.schwerer_verlauf
+const ansteckend = d => Math.round(d.infizierte + d.stationaer + d.schwerer_verlauf)
 
 Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data]) => {
   const fs = {
@@ -197,7 +197,7 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
       .call(g => g.append('text')
         .attr('x', 3)
         .attr('y', 9)
-        .text(`${d.name}: ${Math.abs(newest[d.key])}${i > 2 && source === 'Thüringen' ? '*' : ''}`)
+        .text(`${d.name}: ${Math.round(Math.abs(newest[d.key]))}${i > 2 && source === 'Thüringen' ? '*' : ''}`)
         .style('dominant-baseline', 'middle')
         .style('font-size', fs._13)
         .style('fill', ['white', 'white', 'white', 'black', 'black'][i])))

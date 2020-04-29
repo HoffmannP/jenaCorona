@@ -18,8 +18,7 @@ fi
 
 csvTh="thueringen.csv"
 
-newestSearch="https://mobile.twitter.com$(http "https://mobile.twitter.com/search?q=%28%23COVID19-Fallzahlen%29%20%28from%3ASozialesTH%29" |\
- 	pup 'a[href^="/search"]:contains("Refresh")' 'attr{href}')"
+newestSearch="https://mobile.twitter.com/search?q=%28%23COVID19-Fallzahlen%29+%28from%3ASozialesTH%29+%28since%3A$(date +%Y-%m-%d)%29"
 
 newLine=$(http "$newestSearch" | pup 'div.tweet-text' 'text{}' |\
 	sed -rn '

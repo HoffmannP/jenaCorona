@@ -29,7 +29,6 @@ function correctJenaMissMeasurement (func) {
     if (['1588784405', '1588870800'].includes(row.zeit)) {
       row.erkrankte = `${row.erkrankte - 1}`
     }
-    console.log(row)
     return func(row)
   }
 }
@@ -52,7 +51,8 @@ const quellen = {
       stationaer: (+row.stationaer - +row.schwerer_verlauf) || 1e-9,
       genesene: -row.genesene || 1e-9,
       infizierte: +row.erkrankte - +row.genesene - +row.stationaer - +row.tote,
-      aktiv: +row.erkrankte || 1e-9
+      aktiv: +row.erkrankte || 1e-9,
+      ansteckend: +row.erkrankte - +row.genesene - +row.tote
     }))
   },
   Thüringen: {
@@ -68,7 +68,8 @@ const quellen = {
         stationaer: stationär || 1e-9,
         genesene: -row.genesene || 1e-9,
         infizierte: +row.erkrankte - +row.genesene - stationär - schwererVerlauf - +row.tote,
-        aktiv: +row.erkrankte || 1e-9
+        aktiv: +row.erkrankte || 1e-9,
+        ansteckend: +row.erkrankte - +row.genesene - +row.tote
       }
     }
   }
@@ -79,7 +80,7 @@ const svg = d3.create('svg')
 
 const getData = quelleSelect => d3.csv(quellen[quelleSelect].url, quellen[quelleSelect].prepare)
 
-const ansteckend = d => Math.round(d.infizierte + d.stationaer + d.schwerer_verlauf)
+const mittelVier = (d, i) => d[i].ansteckend + d[i - 1].ansteckend + d[i - 2].ansteckend + d[i - 3].ansteckend
 
 Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data]) => {
   const fs = {
@@ -100,16 +101,27 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
     .offset(d3.stackOffsetDiverging)
   const datasets = stack(data)
 
-  // Calculate rate
+  // Calculate R
   const rate = data.map(
-    (v, i, d) => i > 0 ? { zeit: v.zeit, rate: Math.max(0, v.aktiv - d[i - 1].aktiv) / ansteckend(v) } : undefined
-  ).slice(1)
+    (v, i, d) => i > 7
+      ? {
+        zeit: v.zeit,
+        Reff: mittelVier(d, i - 4) === 0 ? 0 : mittelVier(d, i) / mittelVier(d, i - 4),
+        rate: Math.max(0, v.ansteckend - d[i - 1].ansteckend) / d[i - 1].ansteckend
+      }
+      : undefined
+  ).slice(8)
 
-  const newest = { ...data[data.length - 1], rate: rate[rate.length - 1].rate, count: data[data.length - 1].aktiv - data[data.length - 2].aktiv }
+  const newest = {
+    ...data[data.length - 1],
+    Reff: rate[rate.length - 1].Reff,
+    rate: rate[rate.length - 1].rate,
+    count: data[data.length - 1].aktiv - data[data.length - 2].aktiv
+  }
 
   const x = d3.scaleLinear().domain([d3.min(data, d => d.zeit), d3.max(data, d => d.zeit)]).range([0, width])
   const y1 = d3.scaleLinear().domain([d3.min(data, d => d.genesene + d.tote), d3.max(data, d => d.infizierte + d.stationaer + d.schwerer_verlauf)]).nice().range([height, 0])
-  const y2 = d3.scaleLinear().domain([d3.min(rate, d => d.rate), d3.max(rate.slice(8), d => d.rate)]).nice().range([height, 0]).clamp(true)
+  const y2 = d3.scaleLinear().domain([d3.min(rate, d => d.Reff), d3.max(rate.slice(5), d => d.Reff)]).nice().range([height, 0]).clamp(true)
 
   const area = d3.area()
     .x((d, i) => x(d.data.zeit))
@@ -142,7 +154,7 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
     .attr('stroke-linecap', 'round')
     .attr('d', d3.line()
       .x(d => x(d.zeit))
-      .y(d => y2(d.rate)))
+      .y(d => y2(d.Reff)))
 
   svg.append('rect')
     .attr('x', -1)
@@ -165,7 +177,7 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
     .attr('transform', `translate(0,0)`)
     .style('color', '#bbb')
     .style('font-size', fs._13)
-    .call(d3.axisLeft(y2).tickFormat(d3.format('.0%')))
+    .call(d3.axisLeft(y2).tickFormat(d3.format('.2')))
     .selectAll('text')
     .attr('color', 'black')
 
@@ -221,7 +233,7 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
     .call(g => g.append('text')
       .attr('x', 3)
       .attr('y', 9)
-      .text(`Ansteckungen: ${d3.format('.1%')(newest.rate)} / ${withSign(newest.count)}`)
+      .text(`Reproduktionszahl: ${d3.format('.2')(newest.Reff)} / ${withSign(newest.count)}`)
       .style('dominant-baseline', 'middle')
       .style('font-size', fs._13)
       .style('fill', 'white'))
@@ -235,7 +247,7 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
     .call(g => g.append('text')
       .attr('x', (offsetWidth[2] + offsetWidth[3] + offsetWidth[4]) / 2)
       .attr('y', 9)
-      .text(`SARS-CoV-2 positiv getestet gesamt: ${ansteckend(newest)}`)
+      .text(`SARS-CoV-2 positiv getestet gesamt: ${newest.ansteckend}`)
       .style('dominant-baseline', 'middle')
       .style('text-anchor', 'middle')
       .style('font-size', fs._13)

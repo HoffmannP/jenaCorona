@@ -24,6 +24,16 @@ const categories = [
   { name: 'Schwerer Verlauf', key: 'schwerer_verlauf', color: `rgba(255,   0,   0, ${alpha})` }
 ]
 
+function correctJenaMissMeasurement (func) {
+  return function (row) {
+    if (['1588784405', '1588870800'].includes(row.zeit)) {
+      row.erkrankte = `${row.erkrankte - 1}`
+    }
+    console.log(row)
+    return func(row)
+  }
+}
+
 const withSign = c => `${c > 0 ? '+' : (c === 0 ? '±' : '')}${c}`
 
 d3.timeFormatDefaultLocale(deDE.time)
@@ -35,7 +45,7 @@ const timeParse = d3.timeParse('%d.%m.%Y %H:%M')
 const quellen = {
   Jena: {
     url: 'jena.csv',
-    prepare: row => ({
+    prepare: correctJenaMissMeasurement(row => ({
       zeit: row.zeit * 1000,
       tote: -row.tote || -1e-9,
       schwerer_verlauf: (+row.schwerer_verlauf) || 1e-9,
@@ -43,7 +53,7 @@ const quellen = {
       genesene: -row.genesene || 1e-9,
       infizierte: +row.erkrankte - +row.genesene - +row.stationaer - +row.tote,
       aktiv: +row.erkrankte || 1e-9
-    })
+    }))
   },
   Thüringen: {
     url: 'thueringen.csv',
@@ -92,7 +102,7 @@ Promise.all([shared.calcFontSize(), getData(source)]).then(([fontSizeRatio, data
 
   // Calculate rate
   const rate = data.map(
-    (v, i, d) => i > 0 ? { zeit: v.zeit, rate: (v.aktiv - d[i - 1].aktiv) / ansteckend(v) } : undefined
+    (v, i, d) => i > 0 ? { zeit: v.zeit, rate: Math.max(0, v.aktiv - d[i - 1].aktiv) / ansteckend(v) } : undefined
   ).slice(1)
 
   const newest = { ...data[data.length - 1], rate: rate[rate.length - 1].rate, count: data[data.length - 1].aktiv - data[data.length - 2].aktiv }

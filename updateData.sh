@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $(dirname $(readlink -f $0))
+
 new=0
 
 csvJ="corona_erkrankungen_jena.csv"

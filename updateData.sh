@@ -22,7 +22,7 @@ csvTh="thueringen.csv"
 
 newestSearch="https://mobile.twitter.com/search?q=%28%23COVID19-Fallzahlen%29+%28from%3ASozialesTH%29+%28since%3A$(date +%Y-%m-%d)%29"
 
-newLine=$(http "$newestSearch" | pup 'div.tweet-text' 'text{}' |\
+newLine=$(http "$newestSearch" | /usr/local/bin/pup 'div.tweet-text' 'text{}' |\
 	sed -rn '
 		/Stand/{s/^.*Stand ([0-9]*)\.([0-9]*)\., ([0-9]*) Uhr\):.*$/1 \1.\2.20 \3:00/;p}
 		/Infizierte insgesamt/{s/^.*Infizierte insgesamt[^0-9]+([.0-9]+).*$/2 \1/;s/\.//;p}

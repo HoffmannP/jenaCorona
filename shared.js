@@ -1,7 +1,7 @@
 export const overallWidth = 605
 export const overallHeight = 500
 
-export const bg = 'images/bg10.jpg'
+export const bg = 'images/bg11.jpg'
 
 function loadBackground (backgroundImageUrl) {
   return new Promise(function (resolve) {

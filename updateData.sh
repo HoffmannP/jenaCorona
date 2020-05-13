@@ -47,6 +47,7 @@ fi
 
 if [[ $new -eq 1 ]]
 then
+	git pull
 	git commit -m 'Neue Daten um '"$(date)"
 	git push
 fi

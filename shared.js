@@ -82,7 +82,7 @@ export function addShareButton (source, canvas) {
 
 export function disclaimer (d3, svg, date) {
   return svg.append('text')
-    .text(`🄯2019 hoffis-eck.de/jenaCorona, letzte Aktualisierung: ${d3.timeFormat('%a, %e. %b %H:%M')(date)}`)
+    .text(`🄯2020 hoffis-eck.de/jenaCorona, letzte Aktualisierung: ${d3.timeFormat('%a, %e. %b %H:%M')(date)}`)
     .style('fill', '#bbb')
     .style('font-family', 'sans-serif')
     .style('dominant-baseline', 'middle')

@@ -28,7 +28,7 @@ newLine=$(http "$newestSearch" | /usr/local/bin/pup 'div.tweet-text' 'text{}' |\
 		/Infizierte insgesamt/{s/^.*Infizierte insgesamt[^0-9]+([.0-9]+).*$/2 \1/;s/\.//;p}
 		/Verstorbene/{s/^.*Verstorbene[^0-9]+([.0-9]+).*$/4 \1/;s/\.//;p}
 		/Genesene/{s/^.*Genesene[^0-9]+([.0-9]+).*$/3 \1/;s/\.//;p}
-		/Patienten station/{s/^.*Patienten station[^0-9]+([.0-9]+).*$/5 \1/;s/\.//;p}
+		/Patienten station.*insgesamt/{s/^.*Patienten station[^0-9]+([.0-9]+).*$/5 \1/;s/\.//;p}
 		/schwere Verl/{s/^.*schwere Verl[^0-9]+([.0-9]+).*$/6 \1/;s/\.//;p}' |\
     	sort |\
 	sed 's/^..//' |\

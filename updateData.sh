@@ -24,13 +24,15 @@ csvTh="thueringen.csv"
 
 newestSearch="https://mobile.twitter.com/search?q=%28%23COVID19-Fallzahlen%29+%28from%3ASozialesTH%29+%28since%3A$(date +%Y-%m-%d)%29"
 
+#		/schwere Verl/{s/^.*schwere Verl[^0-9]+([.0-9]+).*$/6 \1/;s/\.//;p}' |\
+
 newLine=$(wget -q -O - "$newestSearch" | /usr/local/bin/pup "div.tweet-text" "text{}" | sed -rn '
 		/Stand/{s/^.*Stand ([0-9]*)\.([0-9]*)\., ([0-9]*) Uhr\):.*$/1 \1.\2.20 \3:00/;p}
 		/Infizierte insgesamt/{s/^.*Infizierte insgesamt[^0-9]+([.0-9]+).*$/2 \1/;s/\.//;p}
 		/Verstorbene/{s/^.*Verstorbene[^0-9]+([.0-9]+).*$/4 \1/;s/\.//;p}
 		/Genesene/{s/^.*Genesene[^0-9]+([.0-9]+).*$/3 \1/;s/\.//;p}
 		/Patienten station.*insgesamt/{s/^.*Patienten station[^0-9]+([.0-9]+).*$/5 \1/;s/\.//;p}
-		/schwere Verl/{s/^.*schwere Verl[^0-9]+([.0-9]+).*$/6 \1/;s/\.//;p}' |\
+		/@HeikeWernerTH/{s/@HeikeWernerTH/6 0/;p}' |\
     	sort |\
 	sed 's/^..//' |\
 	sed 'N;N;N;N;N;s/\n/,/g')
